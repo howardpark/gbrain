@@ -17,6 +17,7 @@ import { PageSnapshotAmbiguousError, type PageSnapshot } from '../page-state/typ
 import { serializePageToMarkdown } from '../markdown.ts';
 import { isAutoLinkEnabled } from '../link-extraction.ts';
 import { sanitizeRemoteBody } from '../remote-body.ts';
+import { omitFactsFence } from '../facts-fence.ts';
 import { getContentFlag } from '../quarantine.ts';
 import { bumpLastRetrievedAt } from '../last-retrieved.ts';
 import { resolveExcludePrivatePages, isPrivatePage, findPrivateOnlySlugs } from '../search/private-visibility.ts';
@@ -82,10 +83,12 @@ const get_page: Operation = {
     include_content: { type: 'boolean', description: 'Full markdown + revision, for editing.' },
     include_deleted: { type: 'boolean', description: 'Include soft-deleted pages.' },
     include_timeline_entries: { type: 'boolean', description: 'Also return timeline rows.' },
+    omit_facts: { type: 'boolean', description: 'Replace the facts table with `<!--- gbrain:facts:omitted -->`; put_page keeps the stored table where it stands.' },
     source_id: { type: 'string', description: "One source, or '__all__'." },
   },
   handler: async (ctx, p) => {
     const slug = p.slug as string;
+    const omitFacts = (p.omit_facts as boolean) === true;
     const fuzzy = (p.fuzzy as boolean) || false;
     const includeDeleted = (p.include_deleted as boolean) === true;
     const includeContent = (p.include_content as boolean) === true;
@@ -175,9 +178,15 @@ const get_page: Operation = {
     // Only explicitly trusted local reads retain protected body sections.
     // Holder grants and page-visibility opt-outs do not bypass this boundary.
     const isUntrustedReader = ctx.remote !== false;
-    const visibleBody = isUntrustedReader
+    const protectedBody = isUntrustedReader
       ? stripPrivacyFencesForRemoteReader(page)
       : page;
+    // omit_facts: the facts fence becomes a placeholder that put_page swaps
+    // back for the stored fence, so editing an entity page never carries its
+    // (unbounded) facts table.
+    const visibleBody = omitFacts
+      ? { ...protectedBody, compiled_truth: omitFactsFence(protectedBody.compiled_truth), timeline: omitFactsFence(protectedBody.timeline) }
+      : protectedBody;
     // v0.42 (#1699) agent-warning channel: surface the page's content_flag
     // marker as a top-level field (parallel to SearchResult.content_flag) so
     // an agent reading a page directly gets the same "this looks odd, examine
@@ -282,7 +291,7 @@ const fetch_page: Operation = {
 const put_page: Operation = {
   name: 'put_page',
   outputRedaction: 'no_stored_text',
-  description: 'Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. Small changes: edit_page.',
+  description: 'Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. A get_page omit_facts placeholder is replaced by the stored facts fence. Small changes: edit_page.',
   params: {
     ...PAGE_MUTATION_PARAMS,
     slug: { type: 'string', description: 'Page slug.', required: true },
