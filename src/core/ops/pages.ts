@@ -15,6 +15,7 @@ import type { Page } from '../types.ts';
 import { decodeDeepResearchId, deepResearchPageUrl } from '../deep-research-id.ts';
 import { PageSnapshotAmbiguousError, type PageSnapshot } from '../page-state/types.ts';
 import { serializePageToMarkdown } from '../markdown.ts';
+import { projectGetPage } from './get-page-projection.ts';
 import { isAutoLinkEnabled } from '../link-extraction.ts';
 import { sanitizeRemoteBody } from '../remote-body.ts';
 import { getContentFlag } from '../quarantine.ts';
@@ -78,6 +79,7 @@ const get_page: Operation = {
     slug: { type: 'string', required: true, description: 'Page slug' },
     fuzzy: { type: 'boolean', description: 'Enable fuzzy slug resolution (default: false)' },
     include_content: { type: 'boolean', description: '#2225: include the canonical serialized `content` field (frontmatter + body + timeline sentinel) for lossless get→edit→put_page round-trips. Default false — it roughly duplicates compiled_truth + timeline, so read-only callers should not pay for it.' },
+    content_only: { type: 'boolean', description: 'With include_content: true, return only what a get→edit→put_page round trip needs — slug, type, title, revision, tags and `content` (plus resolved_slug / content_flag / deleted_at when present). compiled_truth, timeline and frontmatter are already inside `content`, so omitting them halves the payload for large pages. Ignored without include_content (default: false).' },
     include_deleted: { type: 'boolean', description: 'v0.26.5: surface soft-deleted pages with deleted_at populated (default: false). Used by restore workflows.' },
     source_id: { type: 'string', description: "#4329: scope the lookup to a single source (a multi-source brain can hold the same slug in several sources). Defaults to ctx.sourceId / the caller's grant. '__all__' spans every source for trusted local callers, your granted sources for remote callers." },
   },
@@ -189,14 +191,9 @@ const get_page: Operation = {
     // Opt-in (include_content: true): get_page is the most-called read op, and
     // `content` roughly duplicates compiled_truth + timeline — always emitting
     // it would double every reader's payload for the round-trip minority.
-    return {
-      ...visibleBody,
-      revision: snapshot!.revision,
-      tags,
-      ...(includeContent ? { content: serializePageToMarkdown(visibleBody as Page, tags) } : {}),
-      ...(resolved_slug ? { resolved_slug } : {}),
-      ...(content_flag ? { content_flag } : {}),
-    };
+    return projectGetPage(visibleBody, {
+      revision: snapshot!.revision, tags, includeContent, contentOnly: (p.content_only as boolean) === true, resolved_slug, content_flag,
+    });
   },
   scope: 'read',
   cliHints: { name: 'get', positional: ['slug'] },

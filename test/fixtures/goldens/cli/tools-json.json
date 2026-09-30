@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 198725,
-    "stdoutSha256": "3559128ade73b7bee9f7ee38013049ac8757cc66f8c2cf6ea639f9f526a11115",
+    "stdoutBytes": 199227,
+    "stdoutSha256": "73c2d439c1f8e2b365b6821ad4ada997917c47cc97ec981d9585d96d3bb6f7ca",
     "toolNames": [
       "remember",
       "entity",
@@ -317,6 +317,7 @@
         "description": "Read a page by slug (supports optional fuzzy matching). Slug aliases left by renames redirect to the canonical page in the source that owns the alias (archived sources excluded); a redirected read reports `resolved_slug`. To edit a page, pass include_content: true — the returned `content` field is the canonical full markdown (frontmatter + body + timeline sentinel); edit THAT and pass it back to put_page to round-trip losslessly. Reassembling compiled_truth/timeline by hand risks dropping sections. Soft-deleted pages are hidden by default; pass include_deleted: true to surface them with deleted_at populated (see v0.26.5 recovery window).",
         "name": "get_page",
         "parameters": {
+          "content_only": "boolean?",
           "fuzzy": "boolean?",
           "include_content": "boolean?",
           "include_deleted": "boolean?",
@@ -325,6 +326,10 @@
         },
         "schema": {
           "properties": {
+            "content_only": {
+              "description": "With include_content: true, return only what a get→edit→put_page round trip needs — slug, type, title, revision, tags and `content` (plus resolved_slug / content_flag / deleted_at when present). compiled_truth, timeline and frontmatter are already inside `content`, so omitting them halves the payload for large pages. Ignored without include_content (default: false).",
+              "type": "boolean"
+            },
             "fuzzy": {
               "description": "Enable fuzzy slug resolution (default: false)",
               "type": "boolean"
