@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 171828,
-    "stdoutSha256": "63b1c4278bade0ea6ab1590f30f150ddde4cfd6e47826a582bffecee58e2cf43",
+    "stdoutBytes": 172136,
+    "stdoutSha256": "8c1b8ddd4ce0c3c680ee8d9ac3cb6438fb1171f3542116ce85a6aee53ab8f357",
     "toolNames": [
       "remember",
       "entity",
@@ -328,6 +328,7 @@
           "include_content": "boolean?",
           "include_deleted": "boolean?",
           "include_timeline_entries": "boolean?",
+          "omit_facts": "boolean?",
           "slug": "string",
           "source_id": "string?"
         },
@@ -349,6 +350,10 @@
               "description": "Also return timeline rows.",
               "type": "boolean"
             },
+            "omit_facts": {
+              "description": "Replace the facts table with `<!--- gbrain:facts:omitted -->`; put_page keeps the stored table where it stands.",
+              "type": "boolean"
+            },
             "slug": {
               "description": "Page slug.",
               "type": "string"
@@ -365,7 +370,7 @@
         }
       },
       {
-        "description": "Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. Small changes: edit_page.",
+        "description": "Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. A get_page omit_facts placeholder is replaced by the stored facts fence. Small changes: edit_page.",
         "name": "put_page",
         "parameters": {
           "allow_empty": "boolean?",
