@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 172050,
-    "stdoutSha256": "a93b219ab7e28abdbee23f8a576832b6e0aca290f44fb0f02ad5dafa7841dfea",
+    "stdoutBytes": 171979,
+    "stdoutSha256": "3b36a7d9b107afb516e1f050d2d9f85dcfd7d5bdd5576b2c9ed0e0674277e3b7",
     "toolNames": [
       "remember",
       "entity",
@@ -335,7 +335,7 @@
         "schema": {
           "properties": {
             "content_only": {
-              "description": "With include_content: only the round-trip fields (slug, type, title, revision, tags, content).",
+              "description": "Round-trip fields only.",
               "type": "boolean"
             },
             "fuzzy": {
