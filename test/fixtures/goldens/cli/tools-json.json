@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 172704,
-    "stdoutSha256": "7ee701f796d78f4f08a35b3b15b6b88bc483d5288b303a5ba365a62d62068c8b",
+    "stdoutBytes": 172855,
+    "stdoutSha256": "5c078c0d0f781c6238c4d7d6914dc97cad6323815569e3a3e5d78f21fb04cc8b",
     "toolNames": [
       "remember",
       "entity",
@@ -324,6 +324,7 @@
         "description": "Read a page by slug (fuzzy optional; renamed slugs redirect). To edit, pass include_content:true and send `content` to put_page, or use edit_page. Timeline rows need include_timeline_entries.",
         "name": "get_page",
         "parameters": {
+          "content_only": "boolean?",
           "fuzzy": "boolean?",
           "include_content": "boolean?",
           "include_deleted": "boolean?",
@@ -333,6 +334,10 @@
         },
         "schema": {
           "properties": {
+            "content_only": {
+              "description": "Round-trip fields only.",
+              "type": "boolean"
+            },
             "fuzzy": {
               "description": "Fuzzy slug match.",
               "type": "boolean"
