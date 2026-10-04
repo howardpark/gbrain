@@ -86,7 +86,7 @@ const get_page: Operation = {
     include_content: { type: 'boolean', description: 'Full markdown + revision, for editing.' },
     include_deleted: { type: 'boolean', description: 'Include soft-deleted pages.' },
     include_timeline_entries: { type: 'boolean', description: 'Also return timeline rows.' },
-    omit_facts: { type: 'boolean', description: 'Replace the facts table with `<!--- gbrain:facts:omitted -->`; put_page keeps the stored table where it stands.' },
+    omit_facts: { type: 'boolean', description: 'Facts table → placeholder.' },
     source_id: { type: 'string', description: "One source, or '__all__'." },
   },
   handler: async (ctx, p) => {
@@ -290,7 +290,7 @@ const put_page: Operation = {
   name: 'put_page',
   idempotent: true,
   outputRedaction: 'no_stored_text',
-  description: 'Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. A get_page omit_facts placeholder is replaced by the stored facts fence. Small changes: edit_page.',
+  description: 'Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. omit_facts-safe. Small changes: edit_page.',
   params: {
     ...PAGE_MUTATION_PARAMS,
     slug: { type: 'string', description: 'Page slug.', required: true },
