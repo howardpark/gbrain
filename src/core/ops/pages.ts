@@ -18,6 +18,7 @@ import { serializePageToMarkdown } from '../markdown.ts';
 import { projectGetPage } from './get-page-projection.ts';
 import { isAutoLinkEnabled } from '../link-extraction.ts';
 import { sanitizeRemoteBody } from '../remote-body.ts';
+import { omitFactsFromPage } from '../persistence/omitted-facts.ts';
 import { getContentFlag } from '../quarantine.ts';
 import { bumpLastRetrievedAt } from '../last-retrieved.ts';
 import { resolveExcludePrivatePages, isPrivatePage, findPrivateOnlySlugs } from '../search/private-visibility.ts';
@@ -84,6 +85,7 @@ const get_page: Operation = {
     content_only: { type: 'boolean', description: 'Round-trip fields only.' },
     include_deleted: { type: 'boolean', description: 'Include soft-deleted pages.' },
     include_timeline_entries: { type: 'boolean', description: 'Also return timeline rows.' },
+    omit_facts: { type: 'boolean', description: 'Facts table → placeholder.' },
     source_id: { type: 'string', description: "One source, or '__all__'." },
   },
   handler: async (ctx, p) => {
@@ -177,9 +179,7 @@ const get_page: Operation = {
     // Only explicitly trusted local reads retain protected body sections.
     // Holder grants and page-visibility opt-outs do not bypass this boundary.
     const isUntrustedReader = ctx.remote !== false;
-    const visibleBody = isUntrustedReader
-      ? stripPrivacyFencesForRemoteReader(page)
-      : page;
+    const visibleBody = omitFactsFromPage(isUntrustedReader ? stripPrivacyFencesForRemoteReader(page) : page, (p.omit_facts as boolean) === true);
     // v0.42 (#1699) agent-warning channel: surface the page's content_flag
     // marker as a top-level field (parallel to SearchResult.content_flag) so
     // an agent reading a page directly gets the same "this looks odd, examine
@@ -280,7 +280,7 @@ const fetch_page: Operation = {
 const put_page: Operation = {
   name: 'put_page',
   outputRedaction: 'no_stored_text',
-  description: 'Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. Small changes: edit_page.',
+  description: 'Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. omit_facts placeholder keeps facts. Small changes: edit_page.',
   params: {
     ...PAGE_MUTATION_PARAMS,
     slug: { type: 'string', description: 'Page slug.', required: true },

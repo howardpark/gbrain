@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 172855,
-    "stdoutSha256": "5c078c0d0f781c6238c4d7d6914dc97cad6323815569e3a3e5d78f21fb04cc8b",
+    "stdoutBytes": 173043,
+    "stdoutSha256": "6b007792f10962ad48ec1674b376412a41e8cbcf7f0e4969d45ebb6056946da5",
     "toolNames": [
       "remember",
       "entity",
@@ -329,6 +329,7 @@
           "include_content": "boolean?",
           "include_deleted": "boolean?",
           "include_timeline_entries": "boolean?",
+          "omit_facts": "boolean?",
           "slug": "string",
           "source_id": "string?"
         },
@@ -354,6 +355,10 @@
               "description": "Also return timeline rows.",
               "type": "boolean"
             },
+            "omit_facts": {
+              "description": "Facts table → placeholder.",
+              "type": "boolean"
+            },
             "slug": {
               "description": "Page slug.",
               "type": "string"
@@ -370,7 +375,7 @@
         }
       },
       {
-        "description": "Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. Small changes: edit_page.",
+        "description": "Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: graph links are skipped; a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep. omit_facts placeholder keeps facts. Small changes: edit_page.",
         "name": "put_page",
         "parameters": {
           "allow_empty": "boolean?",
