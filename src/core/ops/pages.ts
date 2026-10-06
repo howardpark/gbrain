@@ -91,7 +91,7 @@ const get_page: Operation = {
     content_only: { type: 'boolean', description: 'Round-trip fields only.' },
     include_deleted: { type: 'boolean', description: 'Include soft-deleted pages.' },
     include_timeline_entries: { type: 'boolean', description: 'Also return timeline rows.' },
-    omit_facts: { type: 'boolean', description: 'Replace the facts table with `<!--- gbrain:facts:omitted -->`; put_page keeps the stored table where it stands.' },
+    omit_facts: { type: 'boolean', description: 'Replace the facts table with a placeholder that put_page restores.' },
     source_id: { type: 'string', description: "One source, or '__all__'." },
     include_quarantined: { type: 'boolean', description: 'Admin: quarantined body.' },
   },
@@ -289,7 +289,7 @@ const put_page: Operation = {
   name: 'put_page',
   idempotent: true,
   outputRedaction: 'no_stored_text',
-  description: 'Complete content REPLACES the whole page: read get_page include_content:true; send its revision as expected_revision. Keep a request_id UUID; retry with identical arguments. Remote callers: existing-page [[links]] become mentions; typed links are skipped (stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep). A get_page omit_facts placeholder is replaced by the stored facts fence. Edits: edit_page; >3 pages: put_pages.',
+  description: 'Complete content REPLACES the whole page: read get_page include_content:true; send its revision as expected_revision. Keep a request_id UUID; retry with identical arguments. Remote callers: existing-page [[links]] become mentions; typed links are skipped (stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep). A get_page omit_facts placeholder is restored. Edits: edit_page; >3 pages: put_pages.',
   params: {
     ...PAGE_MUTATION_PARAMS,
     slug: { type: 'string', description: 'Page slug.', required: true },
