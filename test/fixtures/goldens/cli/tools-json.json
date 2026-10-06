@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 207549,
-    "stdoutSha256": "ba03674e7846f4d445030acf6a2bb53cd5544abdff7f8d28e480903f1e852586",
+    "stdoutBytes": 207786,
+    "stdoutSha256": "0d1009cb04bfca4adaaa580380b543fdfdf1bf06092a67e1ac81573a5d9aceaf",
     "toolNames": [
       "remember",
       "entity",
@@ -372,6 +372,7 @@
           "include_content": "boolean?",
           "include_deleted": "boolean?",
           "include_timeline_entries": "boolean?",
+          "omit_facts": "boolean?",
           "slug": "string",
           "source_id": "string?"
         },
@@ -398,6 +399,10 @@
               "description": "Also return timeline rows.",
               "type": "boolean"
             },
+            "omit_facts": {
+              "description": "Replace the facts table with a placeholder that put_page restores.",
+              "type": "boolean"
+            },
             "slug": {
               "description": "Page slug.",
               "type": "string"
@@ -415,7 +420,7 @@
         "scope": "read"
       },
       {
-        "description": "Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: [[links]] to existing pages become mentions; typed links are skipped (a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep). Small changes: edit_page. Over 3 pages: put_pages.",
+        "description": "Replace a complete Markdown page: content REPLACES the whole page. Read get_page include_content:true; pass its revision as expected_revision (omit to create). Keep a request_id UUID; retry with identical arguments. Remote callers: [[links]] to existing pages become mentions; typed links are skipped (a stdio `gbrain serve` sweeps them later, `gbrain serve --http` does not self-sweep). A get_page omit_facts placeholder is restored. Small changes: edit_page. Over 3 pages: put_pages.",
         "idempotent": true,
         "local_only": false,
         "mutating": true,
