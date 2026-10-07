@@ -53,6 +53,12 @@ import { findLineOutsideFencedCode, locateOutsideCode, protectedRegions, unclose
 // fence markers so anyone who's seen one immediately recognizes the other.
 export const FACTS_FENCE_BEGIN = '<!--- gbrain:facts:begin -->';
 export const FACTS_FENCE_END   = '<!--- gbrain:facts:end -->';
+/**
+ * Placeholder `get_page omit_facts` leaves where the fence stood. put_page
+ * swaps the stored fence back in at this position, so a caller can edit the
+ * rest of an entity page without carrying (or re-sending) its facts table.
+ */
+export const FACTS_FENCE_OMITTED = '<!--- gbrain:facts:omitted -->';
 
 // Mirror src/core/engine.ts FactKind. Re-declared (not imported) because
 // the fence parser has zero engine dependencies — it must run in pure-
@@ -716,3 +722,21 @@ export function stripFactsFence(body: string, opts: StripFactsFenceOpts = {}): s
 }
 
 const FACTS_PAIR = [{ begin: FACTS_FENCE_BEGIN, end: FACTS_FENCE_END }];
+
+/**
+ * Replace the facts fence with FACTS_FENCE_OMITTED (get_page omit_facts).
+ * Only a fence that starts and ends on its own lines is omitted, so the
+ * placeholder always stands alone on a line and put_page can find it without
+ * mistaking a quoted mention for it. Anything else is returned unchanged.
+ */
+export function omitFactsFence<T extends string | null | undefined>(body: T): T {
+  if (typeof body !== 'string') return body;
+  const beginIdx = body.indexOf(FACTS_FENCE_BEGIN);
+  if (beginIdx === -1) return body;
+  const endIdx = body.indexOf(FACTS_FENCE_END, beginIdx + FACTS_FENCE_BEGIN.length);
+  if (endIdx === -1) return body;
+  const after = endIdx + FACTS_FENCE_END.length;
+  const ownLines = (beginIdx === 0 || body[beginIdx - 1] === '\n') && (after === body.length || body[after] === '\n' || body[after] === '\r');
+  if (!ownLines) return body;
+  return (body.slice(0, beginIdx) + FACTS_FENCE_OMITTED + body.slice(after)) as T;
+}
