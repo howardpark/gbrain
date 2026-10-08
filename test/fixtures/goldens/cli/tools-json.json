@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 230679,
-    "stdoutSha256": "dc9a2b59ffbb454139bd202eb28d827cd45dc57b91605771d154625920306eda",
+    "stdoutBytes": 230869,
+    "stdoutSha256": "a6240d6921020ba7ab014d7e577f8a3c159abb82a0439fe0851754fedd8d4924",
     "toolNames": [
       "remember",
       "entity",
@@ -406,6 +406,7 @@
           "include_quarantined": "boolean?",
           "include_timeline_entries": "boolean?",
           "min_trust": "string?",
+          "omit_facts": "boolean?",
           "slug": "string",
           "source_id": "string?"
         },
@@ -451,6 +452,10 @@
                 "external_untrusted"
               ],
               "type": "string"
+            },
+            "omit_facts": {
+              "description": "Replace the facts table with a placeholder that put_page restores.",
+              "type": "boolean"
             },
             "slug": {
               "description": "Page slug.",
