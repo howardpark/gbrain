@@ -24,7 +24,7 @@ const add_timeline_entry: Operation = {
   name: 'add_timeline_entry',
   idempotent: true,
   outputRedaction: 'retrieval',
-  description: 'Append a dated entry to a page timeline. Replays change nothing; the Timeline section needs no call. To change or remove one, edit its bullet via edit_page with expected_revision.',
+  description: 'Append a dated entry to a page timeline. Replays change nothing; the Timeline section needs no call. To change or remove one, edit its bullet via edit_page with expected_revision. Use it for anything dated: Current state is rewritten in place, never appended to.',
   params: {
     request_id: WRITE_REQUEST_PARAM,
     ...MERGE_PRECONDITION_PARAMS,
