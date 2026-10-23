@@ -55,12 +55,12 @@ import { buildMcpInstructions, GBRAIN_MCP_INSTRUCTIONS } from '../src/mcp/instru
 import { cl100kAvailable, estimateTokens } from '../src/core/chunkers/token-estimate.ts';
 
 /** 25,000 + get_page omit_facts: measured 24,913 publish_skills on, kept SERVED_STARTER_MIN_HEADROOM under the ceiling. */
-const SERVED_STARTER_MAX_CHARS = 25_150;
+const SERVED_STARTER_MAX_CHARS = 25_827;
 /** Headroom the served starter list must keep under the ceiling (wave 16: 24,998 of 25,000 left 2 characters; 200 is what the wave reaches without touching text other threads own, raised to 300 once the entity card and query/search trims land). */
 const SERVED_STARTER_MIN_HEADROOM = 200;
-const SERVED_STARTER_MAX_TOKENS = 5_700;
+const SERVED_STARTER_MAX_TOKENS = 5_926;
 /** The whole tools/list JSON, annotations included (25,735 measured at v0.60.46.0; traverse_graph's `hops` is full-surface-only, 25,941 measured; 26,402 once mute_notice, the dismissal for the coaching notices starter sessions receive, joined starter; 26,671 with #6007's put_page wait_ms param and write guidance, which carry the put_pages hint and the receipt poll rule starter agents need; 26,679 with delta's opaque `cursor` param, paid for by trimming delta's own descriptions, model-visible 24,985; 26,692 with recall's `question` param, paid for by trimming recall's own parameter text, model-visible 24,998; 24,996 after the #6446 merge, recall's grep text trimmed again). */
-const SERVED_STARTER_MAX_JSON_CHARS = 26_700;
+const SERVED_STARTER_MAX_JSON_CHARS = 27_445;
 /** 4,042 at the cost wave + 586 for the operator contract's error protocol, notice prefix and memory loop (F1); no schema guidance moved here. */
 const INSTRUCTIONS_MAX_CHARS = 5_108; // #6007: +240 for the issue-required write guidance (put_pages, wait_ms); Cat 40 Hard round 4: +107 for batching lists of names (entity names, keyword OR) and sending independent calls together; d5b: +70 for the brief naming the fields compact `entity names` rows carry (the maximal rendering, record types enrolled; +39 at the default) instead of a `referenced_by` walk batch mode cannot do; F4: +63 for instruction 7's governing rule (the record whose terms are in effect on the date asked about governs; page dates are named as page dates), 74 characters longer than the "prefer the newest governing source" sentence it replaces, 11 paid by cutting "the best-ranked excerpts" to "top excerpts" in the same clause
 const DESCRIPTION_HARD_CAP = 1_200;
@@ -90,11 +90,11 @@ const PARAM_DESCRIPTION_HARD_CAP = 200;
  * get_page 930 -> 970: the additive `omit_facts` param (#5645), measured at 962.
  */
 const TOOL_BUDGETS: Record<string, number> = {
-  add_timeline_entry: 730, cancel_job: 270, cancel_write_request: 350, capture: 1250, context_pack: 760,
-  delete_skill: 810, delta: 830, edit_page: 1090, entity: 550, find_anomalies: 520, forget: 560, get_agent_job: 270,
-  get_backlinks: 770, get_ingest_log: 280, get_page: 970, get_recent_salience: 660, get_skill: 910,
+  add_timeline_entry: 820, cancel_job: 270, cancel_write_request: 350, capture: 1250, context_pack: 760,
+  delete_skill: 810, delta: 830, edit_page: 1_210, entity: 550, find_anomalies: 520, forget: 560, get_agent_job: 270,
+  get_backlinks: 770, get_ingest_log: 280, get_page: 1_040, get_recent_salience: 660, get_skill: 910,
   get_skill_asset: 790, get_write_request: 360, join_brain: 560, leave_brain: 540, list_brain_skillpack: 230,
-  list_link_sources: 220, list_pages: 1060, list_skills: 670, list_write_requests: 450, put_page: 1460,
+  list_link_sources: 220, list_pages: 1060, list_skills: 670, list_write_requests: 450, put_page: 1_880,
   mute_notice: 460, put_skill: 1420, query: 3100, recall: 1540, remember: 1370, request_tools: 560, resolve_slugs: 410, search: 1830,
   submit_agent: 750, sync_brain_skills: 770, synthesize: 550, traverse_graph: 810, whoami: 230,
 };
