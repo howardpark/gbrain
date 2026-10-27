@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 264663,
-    "stdoutSha256": "2381a2213443a6c32a0b93ee667b12777b86e19ca1252882b5b0024d258f8357",
+    "stdoutBytes": 265344,
+    "stdoutSha256": "41ef3cbf9a2f5c7d4848f1700e97c86c5f79f80ea60cc012959159d11ae8b4a2",
     "toolNames": [
       "remember",
       "entity",
@@ -420,7 +420,7 @@
         "scope": "write"
       },
       {
-        "description": "Read a page; `section` or `grep` reads one part. Edit: include_content:true, `content` to put_page, or edit_page. >256 KB: outline+window, then `next`.",
+        "description": "Read a page; `section` or `grep` reads one part. Edit: include_content:true, `content` to put_page, or edit_page. >256 KB: outline+window, then `next`. For an edit, read lean: content_only:true and omit_facts:true.",
         "idempotent": true,
         "local_only": false,
         "mutating": false,
@@ -604,7 +604,7 @@
         "scope": "read"
       },
       {
-        "description": "Complete content REPLACES the whole page: read get_page include_content:true; its revision is expected_revision. Keep a request_id UUID; retry with identical arguments. Remote callers: existing-page [[links]] become mentions; typed links are skipped (stdio `gbrain serve` sweeps later, `gbrain serve --http` does not self-sweep). Edits: edit_page; appends: append_page; >3 pages: put_pages.",
+        "description": "Complete content REPLACES the whole page: read get_page include_content:true; its revision is expected_revision. Keep a request_id UUID; retry with identical arguments. Remote callers: existing-page [[links]] become mentions; typed links are skipped (stdio `gbrain serve` sweeps later, `gbrain serve --http` does not self-sweep). Edits: edit_page; appends: append_page; >3 pages: put_pages. A get_page omit_facts placeholder is restored. Page rules: keep a page under 20 KB; rewrite Current state in place and add dated happenings with add_timeline_entry; link as [[slug]] followed by its GitHub mirror link in parentheses; write ranges with a dash or \"to\", never ~; never rename or move a page by hand (renames have their own tool). A page with type: redirect is a stub; write to its redirect_to page.",
         "idempotent": true,
         "local_only": false,
         "mutating": true,
@@ -1053,7 +1053,7 @@
         "scope": "read"
       },
       {
-        "description": "Change part of a page: prefer this over put_page for small changes. expected_revision: from get_page include_content:true. Each old_text must match exactly once (in `within` if set); applied in order, all or none. Stale revision: revision_conflict.",
+        "description": "Change part of a page: prefer this over put_page for small changes. expected_revision: from get_page include_content:true. Each old_text must match exactly once (in `within` if set); applied in order, all or none. Stale revision: revision_conflict. Same page rules as put_page: under 20 KB, Current state rewritten in place, [[slug]] ([GitHub](…)) links, no ~ ranges.",
         "idempotent": true,
         "local_only": false,
         "mutating": true,
@@ -2783,7 +2783,7 @@
         "scope": "read"
       },
       {
-        "description": "Append a dated entry to a page timeline. Replays change nothing; the Timeline section needs no call. To change or remove one, edit its bullet via edit_page with expected_revision.",
+        "description": "Append a dated entry to a page timeline. Replays change nothing; the Timeline section needs no call. To change or remove one, edit its bullet via edit_page with expected_revision. Use it for anything dated: Current state is rewritten in place, never appended to.",
         "idempotent": true,
         "local_only": false,
         "mutating": true,
