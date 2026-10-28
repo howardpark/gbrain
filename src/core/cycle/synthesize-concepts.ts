@@ -45,6 +45,7 @@ import { readPhaseConfigNumber, SYNTHESIZE_CONCEPTS_BUDGET_KEY, SYNTHESIZE_CONCE
 import { ConceptRetryBound, MAX_CONCEPT_ATTEMPTS } from './concept-retry-bound.ts';
 import { ConceptDriftSkips } from '../persistence/drift-conflicts.ts';
 import { throwIfAborted } from '../abort-check.ts';
+import { resolveCurationLanguagePolicy, curationLanguageDirectiveFor } from '../ai/curation-language.ts';
 
 // Miss policy for the shared resolver (`priceFor`: operator overrides, the
 // claude-cli → Anthropic sibling, canonical rows): assume Sonnet-tier
@@ -170,6 +171,7 @@ export async function runPhaseSynthesizeConcepts(
   opts: SynthesizeConceptsOpts = {},
 ): Promise<PhaseResult> {
   const chat = opts._chat ?? gatewayChat;
+  const languagePolicy = await resolveCurationLanguagePolicy(engine); // once per run
 
   // 1. Get atom pages (test seam OR DB query)
   let atoms = opts._atoms ?? [];
@@ -427,7 +429,7 @@ export async function runPhaseSynthesizeConcepts(
         try {
           const result = await chat({
             model: synthModel,
-            system: SYNTH_PROMPT,
+            system: SYNTH_PROMPT + curationLanguageDirectiveFor(languagePolicy, narrativeBodies.slice(0, 5).join('\n').slice(0, 4000)),
             messages: [
               {
                 role: 'user',
