@@ -93,6 +93,7 @@ import { serializeMarkdown, serializePageToMarkdown } from '../markdown.ts';
 import type { Page, PageType } from '../types.ts';
 import { safeSplitIndex, truncateUtf8 } from '../text-safe.ts';
 import { PAGE_SLUG_SEG } from '../cjk.ts';
+import { resolveCurationLanguagePolicy, curationLanguageDirectiveFor } from '../ai/curation-language.ts';
 import { withChatPhase, estimateChatCostUsd } from '../ai/chat-usage.ts';
 import { verifyAndRepairDreamPages, normForGrounding, readVerifyEpoch, loadChildWriteEpochs, isDreamOwnedPage, type QuoteVerifyStats, type TranscriptForVerify } from './synthesize-verify.ts';
 import { dreamBreakerRefusal, loadDreamBreaker } from './dream-breaker.ts';
@@ -499,6 +500,7 @@ async function runPhaseSynthesizeInner(
     // subagent so it knows which slugs it should reconcile if it writes to
     // them. Best-effort — a probe that's never run is a normal early state.
     const priorContradictionsBlock = await loadPriorContradictionsBlock(engine);
+    const languagePolicy = await resolveCurationLanguagePolicy(engine); // once per cycle; the directive is built per chunk
 
     // Discover: the corpus walk (or --input) plus #4419 imported conversation pages.
     const transcripts = await withConversationPages(engine, opts, config, opts.inputFile
@@ -895,6 +897,7 @@ async function runPhaseSynthesizeInner(
         config.mode,
         summaryDate,
         config.attributionRules, config.dateGrounding,
+        languagePolicy,
       ));
       // One check for the whole chunk set: a transcript never half-submits.
       const callsPerChild = config.mode === 'agentic' ? config.maxTurns : 1;
@@ -2844,6 +2847,8 @@ function buildSynthesisPrompt(
   // extraction.date_grounding: the transcript's own date is the observation date;
   // the cycle date is never used to resolve relative references.
   dateGrounding = false,
+  // dream.curation.output_language, resolved once per cycle; the directive is built from this chunk's text.
+  languagePolicy = 'source',
 ): string {
   const dateHint = t.inferredDate ?? cycleDate;
   const dateContextLine = !dateGrounding
@@ -2915,7 +2920,7 @@ TRANSCRIPT (${transcriptHeader})
 ${chunkText}
 ---${mode === 'agentic'
     ? '\n\nWhen done, briefly list the slugs you wrote in your final message so the orchestrator can audit.'
-    : ''}`;
+    : ''}${curationLanguageDirectiveFor(languagePolicy, chunkText)}`;
 }
 
 function sanitizeForSlug(s: string): string {

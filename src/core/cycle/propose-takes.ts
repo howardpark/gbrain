@@ -62,6 +62,7 @@ import { ProposeTakesFailures, PROPOSE_TAKES_HOLD_RUNS, type FailedPage } from '
 import type { OperationContext } from '../operations.ts';
 import type { BrainEngine } from '../engine.ts';
 import type { PhaseStatus, CyclePhase } from '../cycle.ts';
+import { resolveCurationLanguagePolicy, curationLanguageDirectiveFor } from '../ai/curation-language.ts';
 
 /**
  * Bump when the extractor prompt or the JSON output shape changes. Old
@@ -217,6 +218,8 @@ export type ProposeTakesExtractor = (input: {
   dateGrounding?: boolean;
   /** The page's observation date (date-grounding.ts), null when undated. */
   observationDate?: ObservationDate | null;
+  /** dream.curation.output_language, read once per phase run (curation-language.ts); absent = "source". */
+  languagePolicy?: string;
 }) => Promise<ProposedTake[]>;
 
 export interface ProposeTakesOpts extends BasePhaseOpts {
@@ -502,7 +505,8 @@ export async function defaultExtractor(
     .replace('PAGE PROSE:\n', input.dateGrounding
       ? `${observationDateRule()}\n${observationDateLine(input.observationDate ?? resolveObservationDate({ slug: input.pagePath }))}\n\nPAGE PROSE:\n`
       : 'PAGE PROSE:\n')
-    .replace('{PAGE_BODY}', input.pageBody);
+    .replace('{PAGE_BODY}', input.pageBody)
+    + curationLanguageDirectiveFor(input.languagePolicy ?? 'source', input.pageBody);
 
   // #4494: per-run configurable caps (dream.propose_takes.max_tokens /
   // .retry_max_tokens), threaded by the phase; the #3763 constants stay as
@@ -809,6 +813,7 @@ class ProposeTakesPhase extends BaseCyclePhase {
 
     const extractor = opts.extractor ?? defaultExtractor;
     const [{ attributionRules, dateGrounding }, attributionChecks] = await Promise.all([takesPromptFlags(engine), attributionChecksEnabled(engine)]);
+    const languagePolicy = await resolveCurationLanguagePolicy(engine);
     const promptVersion = opts.promptVersion ?? `${PROPOSE_TAKES_PROMPT_VERSION}${attributionRules ? PROPOSE_TAKES_ATTRIBUTION_PROMPT_SUFFIX : ''}`;
     const pageLimit = opts.pageLimit ?? 100;
     const skipPagesWithFence = opts.skipPagesWithFence ?? false;
@@ -1022,7 +1027,7 @@ class ProposeTakesPhase extends BaseCyclePhase {
           maxTokens: extractorMaxTokens,
           retryMaxTokens: extractorRetryMaxTokens,
           ...phaseBoundedCallTimeout(callTimeout.value, deadlineMs - (Date.now() - phaseStartMs)),
-          attributionRules, dateGrounding,
+          attributionRules, dateGrounding, languagePolicy,
         });
       } catch (err) {
         // GBRA-130: a run-scoped error (abort, lost connection, failed
