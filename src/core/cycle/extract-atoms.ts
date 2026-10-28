@@ -100,6 +100,7 @@ import { atomGenerationOrigin, atomInputPin, heldLine, publishUnmanagedAtoms, re
 import { heldForInput } from '../generations/publish.ts';
 import { ATOM_TYPES, ATOMS_RESPONSE_SCHEMA } from './extract-atoms-schema.ts';
 import { parseAtomsOutcome } from './extract-atoms-parse.ts';
+import { resolveCurationLanguagePolicy, curationLanguageDirectiveFor } from '../ai/curation-language.ts';
 export { parseAtomsOutcome, parseAtomsResponse, type AtomsParseOutcome } from './extract-atoms-parse.ts';
 
 const DEFAULT_BUDGET_USD = 0.3;
@@ -334,11 +335,11 @@ export function locateQuote(
  * date — undated sources say unknown — and the shared relative-date rule
  * joins the system prompt.
  */
-function atomsPrompt(dateGrounding: boolean, originLabel: string, promptContent: string): { system: string; messages: Array<{ role: 'user'; content: string }> } {
+function atomsPrompt(dateGrounding: boolean, originLabel: string, promptContent: string, languagePolicy = 'source'): { system: string; messages: Array<{ role: 'user'; content: string }> } {
   const observedOn = sourceDate(originLabel, '');
   const dateLine = dateGrounding ? `${observationDateLine(observedOn ? { date: observedOn, source: 'filename' } : null)}\n` : '';
   return {
-    system: dateGrounding ? `${EXTRACT_PROMPT}\n\n${observationDateRule()}` : EXTRACT_PROMPT,
+    system: (dateGrounding ? `${EXTRACT_PROMPT}\n\n${observationDateRule()}` : EXTRACT_PROMPT) + curationLanguageDirectiveFor(languagePolicy, promptContent),
     messages: [{ role: 'user', content: dateLine + transcriptMessage(originLabel, promptContent) }],
   };
 }
@@ -914,6 +915,7 @@ export async function runPhaseExtractAtoms(
   // matching the pre-refactor fail-soft behavior exactly.
   let extractModel = resolveTierDefault('utility');
   const dateGrounding = await isConsumerDateGroundingOn(engine, 'atoms');
+  const languagePolicy = await resolveCurationLanguagePolicy(engine); // dream.curation.output_language, once per run
   let budgetCap = DEFAULT_BUDGET_USD;
   let explicitBudget = false; // operator SET cycle.extract_atoms.budget_usd
   // #4529/#4540: the per-item output cap was hardcoded (maxTokens: 4096).
@@ -1119,7 +1121,7 @@ export async function runPhaseExtractAtoms(
 
       const result = await chat({
         model: extractModel,
-        ...atomsPrompt(dateGrounding, originLabel, promptContent),
+        ...atomsPrompt(dateGrounding, originLabel, promptContent, languagePolicy),
         maxTokens: maxOutputTokens, responseSchema: ATOMS_RESPONSE_SCHEMA,
         abortSignal: opts.signal,
       });

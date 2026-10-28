@@ -282,6 +282,10 @@ per-transcript synthesis subagents. The dials:
   later corrections explicit; an assistant-authored judgment is not the
   user's. Off because matched runs measured no benefit (propose-takes F1
   0.896 → 0.876); a brain that wants them opts in per phase.
+- `dream.curation.output_language` (default `source`; a language code such as `ko`, or `off`) —
+  the language curated text is written in. `source` keeps the source page's own language
+  (Korean stays Korean) for facts, atoms, concepts, takes and synthesis prose; an English source
+  adds nothing to the prompt. A code forces that language; `off` never adds the directive.
 - `dream.attribution_checks` (default off; `true` or `false`) — the two
   mechanical attribution checks of #5425 that need the same held-out
   measurement before they can change defaults. On, `propose_takes` stores a

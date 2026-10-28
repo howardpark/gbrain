@@ -35,6 +35,7 @@ import type { BrainEngine, NewFact, FactKind, FactAttribution } from '../engine.
 import { normalizeMetricLabel } from './extract-from-fence.ts';
 import { isNullLikeEntity } from './write-single.ts';
 import { isAIInvocationPolicyError } from '../ai/invocation-guard.ts';
+import { curationLanguageDirective } from '../ai/curation-language.ts';
 
 /**
  * v0.31 (D15): kill-switch for fact extraction.
@@ -647,9 +648,11 @@ export async function extractFactsFromTurnWithOutcome(
     getMissingConfidence(input.engine),
     input.variant ?? getExtractorVariant(input.engine),
   ]);
-  const extractorSystem = promptAppendix
+  // Curation language: fact text follows the source turn's language (config dream.curation.output_language).
+  const languageDirective = await curationLanguageDirective(input.engine, cleaned);
+  const extractorSystem = (promptAppendix
     ? `${buildExtractorSystem(admitsLow, variant)}\n\n${promptAppendix}`
-    : buildExtractorSystem(admitsLow, variant);
+    : buildExtractorSystem(admitsLow, variant)) + languageDirective;
   const responseSchema = factsResponseSchema(variant);
   const dateLine = variant.dateGrounding ? `${observationDateLine(input.observationDate ?? null)}\n` : '';
   const userContent = `${dateLine}<turn>\n${cleaned}\n</turn>\n\nExtract up to ${cap} facts.${

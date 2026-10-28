@@ -1551,6 +1551,7 @@ export const KNOWN_CONFIG_KEYS: readonly string[] = [
   // not a conversation_parser.* prefix: fallback is the only opt-in consumer.
   'conversation_parser.llm_fallback_enabled',
   // Dream cycle config
+  'dream.curation.output_language', // source (default) | <language code> | off — curation-language.ts
   'dream.synthesize.session_corpus_dir', 'dream.synthesize.conversation_pages', // #4419 conversation pages feed synthesis
   'dream.synthesize.meeting_transcripts_dir',
   'dream.synthesize.last_completion_ts',
