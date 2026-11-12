@@ -730,6 +730,10 @@
               "type": "boolean",
               "description": "Also return every line-grammar finding for the page."
             },
+            "omit_facts": {
+              "type": "boolean",
+              "description": "Replace the facts table with a placeholder that put_page restores."
+            },
             "source_id": {
               "type": "string",
               "description": "One source, or '__all__'."

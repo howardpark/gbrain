@@ -200,7 +200,11 @@ describe('QM memory-provider contract v3 (GST-1158 F1: personal tools, frozen re
     const served = buildToolDefs(operations.filter(o => QM_PERSONAL_OPS.has(o.name)));
     for (const tool of fixture.personal_tools.tools) {
       const def = served.find(d => d.name === tool.name)!;
-      expect({ description: tool.description, ...tool.input_schema }).toEqual({ description: def.description, ...def.inputSchema });
+      // Restricted to v3's arguments: get_page's omit_facts appears from v4 on.
+      const servedKeys = Object.keys(def.inputSchema.properties as Record<string, unknown>);
+      expect(servedKeys.filter(k => !(k in tool.input_schema.properties))).toEqual(tool.name === 'get_page' ? ['omit_facts'] : []);
+      const properties = Object.fromEntries(Object.entries(def.inputSchema.properties as Record<string, unknown>).filter(([k]) => k in tool.input_schema.properties));
+      expect({ description: tool.description, ...tool.input_schema }).toEqual({ description: def.description, ...def.inputSchema, properties });
       expect(tool.personal_only).toBe(true);
       expect(tool.result.structured_content).toBeDefined();
     }
@@ -279,7 +283,12 @@ describe('QM memory-provider contract v4 (GST-2407: memory_propose, E1 scope_rea
     const { read_as: readAs, scope_read: _marks, tools: personalTools, ...personalRest } = fixture.personal_tools;
     const { read_as: v3ReadAs, tools: v3Tools, ...v3PersonalRest } = v3.personal_tools;
     expect(personalRest).toEqual(v3PersonalRest);
-    expect(personalTools.map(({ scope_read: _s, proposal_receipt: _p, ...t }: { scope_read: boolean; proposal_receipt?: string }) => t)).toEqual(v3Tools);
+    // get_page gains omit_facts in v4; every other personal tool is v3's, argument for argument.
+    const withoutOmitFacts = (tools: Array<{ name: string; input_schema: { properties: Record<string, unknown> } }>) => tools.map(t => {
+      const { omit_facts: _omit, ...properties } = t.input_schema.properties;
+      return { ...t, input_schema: { ...t.input_schema, properties } };
+    });
+    expect(withoutOmitFacts(personalTools.map(({ scope_read: _s, proposal_receipt: _p, ...t }: { scope_read: boolean; proposal_receipt?: string }) => t))).toEqual(v3Tools);
     expect(personalTools.filter((t: { proposal_receipt?: string }) => t.proposal_receipt).map((t: { name: string }) => t.name)).toEqual(['get_write_request']);
     expect(v3ReadAs).toContain('no tool here is marked as a shared-scope read yet');
     expect(readAs).not.toContain('not marked');
@@ -306,6 +315,15 @@ describe('QM memory-provider contract v4 (GST-2407: memory_propose, E1 scope_rea
     expect(rules.every_source).toContain('invalid_params');
     expect(rules.unmarked).toContain('context_pack');
     expect(rules.as_person).toContain('--attest-read person');
+  });
+
+  test('get_page publishes omit_facts from v4 on, as the schema MCP serves it; v3 does not have it', () => {
+    const page = fixture.personal_tools.tools.find((t: { name: string }) => t.name === 'get_page');
+    const def = buildToolDefs(operations.filter(o => o.name === 'get_page'))[0]!;
+    expect(page.input_schema.properties.omit_facts).toEqual((def.inputSchema.properties as Record<string, unknown>).omit_facts);
+    expect(page.input_schema.properties.omit_facts.type).toBe('boolean');
+    expect(page.input_schema.required).not.toContain('omit_facts');
+    expect(v3.personal_tools.tools.find((t: { name: string }) => t.name === 'get_page').input_schema.properties.omit_facts).toBeUndefined();
   });
 
   test('memory_recall rows carry own_page beside an unchanged arm', () => {
