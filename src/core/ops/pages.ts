@@ -346,7 +346,7 @@ const put_page: Operation = {
   name: 'put_page',
   idempotent: true,
   outputRedaction: 'no_stored_text',
-  description: 'Complete content REPLACES the whole page: read get_page include_content:true; its revision is expected_revision. Keep a request_id UUID; retry with identical arguments. Remote callers: existing-page [[links]] become mentions; typed links are skipped (stdio `gbrain serve` sweeps later, `gbrain serve --http` does not self-sweep). Edits: edit_page; appends: append_page; >3 pages: put_pages.',
+  description: 'Complete content REPLACES the whole page: read get_page include_content:true; its revision is expected_revision. Keep a request_id UUID; retry with identical arguments. Remote callers: existing-page [[links]] become mentions; typed links are skipped (stdio `gbrain serve` sweeps later, `gbrain serve --http` does not self-sweep). Edits: edit_page; appends: append_page; >3 pages: put_pages. A get_page omit_facts placeholder is restored. Page rules: keep a page under 20 KB; rewrite Current state in place and add dated happenings with add_timeline_entry; link as [[slug]] followed by its GitHub mirror link in parentheses; write ranges with a dash or "to", never ~; never rename or move a page by hand (renames have their own tool). A page with type: redirect is a stub; write to its redirect_to page.',
   params: {
     ...AGENT_CONTENT_PARAMS,
     slug: { type: 'string', description: 'Page slug.', required: true },
