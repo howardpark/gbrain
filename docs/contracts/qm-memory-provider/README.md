@@ -31,6 +31,9 @@ never as the person. Each `memory_recall` fact carries `own_page`, true when the
 sits on the person's own member page, which is exactly when `forget_fact` accepts it on
 ownership (it can still ask the owner for a fact more trusted than the person's own writes).
 
+`get_page` also takes `omit_facts` (boolean) in `v4.json`: it replaces the facts table with a placeholder that `put_page`
+restores, so an edit does not carry the table. `v3.json` does not list it.
+
 They are generated from the live operation registry by
 `bun scripts/build-qm-memory-contract.ts` (part of `bun run regen:all`), and
 `test/qm-memory-contract.test.ts` fails when a committed file drifts.
