@@ -202,7 +202,11 @@ describe('QM memory-provider contract v3 (GST-1158 F1: personal tools, frozen re
     const served = buildToolDefs(operations.filter(o => QM_PERSONAL_OPS.has(o.name)));
     for (const tool of fixture.personal_tools.tools) {
       const def = served.find(d => d.name === tool.name)!;
-      expect({ description: tool.description, ...tool.input_schema }).toEqual({ description: def.description, ...def.inputSchema });
+      // Restricted to v3's arguments: get_page's omit_facts appears from v5 on.
+      const servedKeys = Object.keys(def.inputSchema.properties as Record<string, unknown>);
+      expect(servedKeys.filter(k => !(k in tool.input_schema.properties))).toEqual(tool.name === 'get_page' ? ['omit_facts'] : []);
+      const properties = Object.fromEntries(Object.entries(def.inputSchema.properties as Record<string, unknown>).filter(([k]) => k in tool.input_schema.properties));
+      expect({ description: tool.description, ...tool.input_schema }).toEqual({ description: def.description, ...def.inputSchema, properties });
       expect(tool.personal_only).toBe(true);
       expect(tool.result.structured_content).toBeDefined();
     }
@@ -370,13 +374,27 @@ describe('QM memory-provider contract v5 (GST-2407: context_pack reads its named
     const { scope_read: rules, tools: personalTools, ...rest } = fixture.personal_tools;
     const { scope_read: v4Rules, tools: v4Tools, ...v4Rest } = v4.personal_tools;
     expect(rest).toEqual(v4Rest);
-    expect(personalTools.map((t: { name: string; scope_read: boolean }) => (t.name === 'context_pack' ? { ...t, scope_read: false } : t))).toEqual(v4Tools);
+    // get_page gains omit_facts in v5 (see the next test); every other argument of every personal tool is v4's.
+    const withoutOmitFacts = (t: { name: string; input_schema: { properties: Record<string, unknown> } }) => {
+      const { omit_facts: _omit, ...properties } = t.input_schema.properties;
+      return { ...t, input_schema: { ...t.input_schema, properties } };
+    };
+    expect(personalTools.map((t: { name: string; scope_read: boolean; input_schema: { properties: Record<string, unknown> } }) => withoutOmitFacts(t.name === 'context_pack' ? { ...t, scope_read: false } : t))).toEqual(v4Tools);
     const { context_pack: packRule, unmarked, ...ruleRest } = rules;
     const { unmarked: v4Unmarked, ...v4RuleRest } = v4Rules;
     expect(ruleRest).toEqual(v4RuleRest);
     expect(v4Unmarked.startsWith(unmarked)).toBe(true);
     expect(unmarked).not.toContain('context_pack');
     for (const word of ['source_id', 'entity_refs', 'session_id', 'invalid_params', 'nothing is read']) expect(packRule).toContain(word);
+  });
+
+  test('get_page publishes omit_facts from v5 on, as the schema MCP serves it; v4 does not have it', () => {
+    const page = fixture.personal_tools.tools.find((t: { name: string }) => t.name === 'get_page');
+    const def = buildToolDefs(operations.filter(o => o.name === 'get_page'))[0]!;
+    expect(page.input_schema.properties.omit_facts).toEqual((def.inputSchema.properties as Record<string, unknown>).omit_facts);
+    expect(page.input_schema.properties.omit_facts.type).toBe('boolean');
+    expect(page.input_schema.required).not.toContain('omit_facts');
+    expect(v4.personal_tools.tools.find((t: { name: string }) => t.name === 'get_page').input_schema.properties.omit_facts).toBeUndefined();
   });
 
   test('each personal tool is marked scope_read from SCOPE_READ_OPS, and every scope-read op QM sees is marked', () => {

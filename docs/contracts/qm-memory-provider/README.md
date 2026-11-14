@@ -40,6 +40,9 @@ carry that same `source_id`, and `entity_refs` without `source_id`, an entry in
 another source, or `session_id` is refused with `invalid_params` before anything
 is read.
 
+`get_page` also takes `omit_facts` (boolean) in `v5.json`: it replaces the facts table with a placeholder that `put_page`
+restores, so an edit does not carry the table. `v1.json` to `v4.json` do not list it.
+
 They are generated from the live operation registry by
 `bun scripts/build-qm-memory-contract.ts` (part of `bun run regen:all`), and
 `test/qm-memory-contract.test.ts` fails when a committed file drifts.
