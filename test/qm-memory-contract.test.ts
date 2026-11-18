@@ -206,7 +206,11 @@ describe('QM memory-provider contract v3 (GST-1158 F1: personal tools, frozen re
     for (const tool of fixture.personal_tools.tools) {
       const def = served.find(d => d.name === tool.name)!;
       const frozen = V5_TOOL_TEXT[tool.name];
+      // get_page's omit_facts is served at runtime but listed in no published version: compare the published arguments.
+      const servedKeys = Object.keys(def.inputSchema.properties as Record<string, unknown>);
+      expect(servedKeys.filter(k => !(k in tool.input_schema.properties))).toEqual(tool.name === 'get_page' ? ['omit_facts'] : []);
       const properties = Object.fromEntries(Object.entries(def.inputSchema.properties as Record<string, Record<string, unknown>>)
+        .filter(([k]) => k in tool.input_schema.properties)
         .map(([k, v]) => [k, frozen?.params[k] ? { ...v, description: frozen.params[k] } : v]));
       expect({ description: tool.description, ...tool.input_schema }).toEqual({ description: frozen?.description ?? def.description, ...def.inputSchema, properties });
       expect(tool.personal_only).toBe(true);
@@ -383,6 +387,12 @@ describe('QM memory-provider contract v5 (GST-2407: context_pack reads its named
     expect(v4Unmarked.startsWith(unmarked)).toBe(true);
     expect(unmarked).not.toContain('context_pack');
     for (const word of ['source_id', 'entity_refs', 'session_id', 'invalid_params', 'nothing is read']) expect(packRule).toContain(word);
+  });
+
+  test('no published version lists get_page omit_facts, which MCP serves at runtime', () => {
+    const def = buildToolDefs(operations.filter(o => o.name === 'get_page'))[0]!;
+    expect((def.inputSchema.properties as Record<string, unknown>).omit_facts).toBeDefined();
+    for (const version of [1, 2, 3, 4, 5] as const) expect(renderQmMemoryContract(version)).not.toContain('omit_facts');
   });
 
   test('each personal tool is marked scope_read from SCOPE_READ_OPS, and every scope-read op QM sees is marked', () => {
