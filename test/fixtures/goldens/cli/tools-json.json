@@ -2,8 +2,8 @@
   "golden": {
     "exitCode": 0,
     "stderr": "",
-    "stdoutBytes": 301448,
-    "stdoutSha256": "78c57e6d0541404ce29f7ff140711dc2aa72c99bbdc567981c262e32cbe1b793",
+    "stdoutBytes": 301638,
+    "stdoutSha256": "d03709b78800b228bc74f44979e32da5e6a5448f0b7b7899e6ddf38207d318be",
     "toolNames": [
       "remember",
       "entity",
@@ -492,6 +492,7 @@
           "lines": "object?",
           "max_bytes": "number?",
           "min_trust": "string?",
+          "omit_facts": "boolean?",
           "outline_from": "number?",
           "section": "string?",
           "slug": "string",
@@ -617,6 +618,10 @@
                 "external_untrusted"
               ],
               "type": "string"
+            },
+            "omit_facts": {
+              "description": "Replace the facts table with a placeholder that put_page restores.",
+              "type": "boolean"
             },
             "outline_from": {
               "description": "Outline next_from_index.",
