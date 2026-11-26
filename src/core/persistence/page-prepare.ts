@@ -75,6 +75,7 @@ import { assertTimelineNotOmitted, timelineWritePolicy } from './timeline-omissi
 import { preserveProtectedTakes } from './protected-takes.ts';
 import { assertPrivateRequestKept, privateRequestGuarded, readPrivateRequest } from './visibility-request.ts';
 import { assertReadersKeyCanonical } from './readers-request.ts';
+import { restoreOmittedFacts } from './omitted-facts.ts';
 import { isAutoLinkEnabled } from '../link-extraction.ts';
 import { prepareAutomaticLinks } from './links-preparation.ts';
 import { loadActivePackForEngine } from '../schema-pack/engine-resolution.ts';
@@ -1153,6 +1154,10 @@ async function prepareInlineOrSegmentedMutation(unbounded: BrainEngine, row: Wri
       versionTags = tags;
     }
     content = serializePageToMarkdown(page, tags);
+  }
+  // get_page omit_facts: the stored facts fence goes back where the reader saw the placeholder.
+  if (row.operation === 'put_page' && typeof content === 'string') {
+    content = restoreOmittedFacts(content, snapshot && !snapshot.page.deleted_at ? serializePageToMarkdown(snapshot.page, snapshot.tags) : '');
   }
   if (row.authority.remote && row.operation !== 'remember' && !row.operation.startsWith('takes_') && typeof content==='string') {
     const parsed=parseMarkdown(content,row.slug,{ activePack });
