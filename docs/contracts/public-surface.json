@@ -2045,6 +2045,7 @@
     "dream.breaker.max_dead_submissions",
     "dream.claim_conflicts.max_pairs",
     "dream.claim_conflicts.mode",
+    "dream.curation.output_language",
     "dream.patterns.child_read_budget_kb",
     "dream.patterns.lookback_days",
     "dream.patterns.min_evidence",
