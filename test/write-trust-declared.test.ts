@@ -142,6 +142,7 @@ const WRITES_NO_TRUST_ROW: Readonly<Record<string, string>> = {
   promote_guest_note: 'an async derived publication, covered by the guest tests', sync_brain: 'a sync job, driven by the import paths below',
   remove_tag: 'a tag row', add_tag: 'a tag row', remove_link: 'a link row', add_link: 'a link row', ontology_propose: 'ontology proposals',
   memory_propose: 'proposals', memory_write: 'requires an attested person; its fact rows go through the same journal as remember',
+  learned_keep: 'the learning ledger row only', learned_undo: 'reverses through the owning op (forget, loops_close, revert_version), each driven or listed here',
   forget: 'withdraws facts through the journal, as forget_fact', delete_page: 'a soft delete through the journal', restore_page: 'a restore through the journal',
 };
 
